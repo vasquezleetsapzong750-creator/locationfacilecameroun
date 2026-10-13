@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Location Facile Cameroun</title>
+<meta name="description" content="Trouvez un logement à louer au Cameroun par ville et par quartier.">
+<style>
+:root{--bg:#f7f8f5;--card:#fff;--tx:#1b2a1f;--mu:#5f6e63;--pr:#0a7a3d;--ac:#f2b705;--bd:#dfe5dc}
+@media (prefers-color-scheme:dark){:root{--bg:#111a14;--card:#1a261e;--tx:#e8f0ea;--mu:#9fb1a4;--pr:#3fc47a;--bd:#2a3a2f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+header{background:#0a7a3d;color:#fff;padding:28px 16px 56px;text-align:center}
+header h1{margin:0 0 6px;font-size:1.6rem}
+header p{margin:0;opacity:.9}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.search{margin-top:-36px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+label{font-size:.8rem;color:var(--mu);display:block;margin-bottom:4px}
+select,input{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:1rem}
+select:focus-visible,input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+button{padding:10px 16px;border:0;border-radius:8px;background:var(--ac);color:#222;font-weight:700;font-size:1rem;cursor:pointer;align-self:end}
+button:disabled{opacity:.6;cursor:wait}
+.count{margin:20px 0 10px;color:var(--mu)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding-bottom:30px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card img{width:100%;height:170px;object-fit:cover;background:var(--bd)}
+.card .in{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.tag{font-size:.75rem;background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:2px 10px;align-self:flex-start;color:var(--mu)}
+.card h3{margin:0;font-size:1.05rem}
+.loc{color:var(--mu);font-size:.9rem}
+.prix{color:var(--pr);font-weight:700;font-size:1.15rem}
+.card a{margin-top:auto;text-align:center;background:#0a7a3d;color:#fff;text-decoration:none;padding:9px;border-radius:8px;font-weight:600}
+.empty{padding:30px;text-align:center;color:var(--mu);grid-column:1/-1}
+.pub{margin-bottom:30px}
+.pub h2{font-size:1.1rem;margin:0 0 10px}
+#pm{margin-top:10px;font-weight:600}
+footer{text-align:center;color:var(--mu);font-size:.8rem;padding:16px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Location Facile Cameroun</h1>
+  <p>Trouvez votre logement par ville et par quartier</p>
+</header>
+<div class="wrap">
+  <div class="box search">
+    <div><label for="ville">Ville</label><select id="ville"></select></div>
+    <div><label for="quartier">Quartier</label><select id="quartier"></select></div>
+    <div><label for="type">Type de bien</label>
+      <select id="type"><option value="">Tous</option><option>Chambre</option><option>Studio</option><option>Appartement</option><option>Maison</option><option>Local commercial</option></select></div>
+    <div><label for="budget">Budget max (FCFA/mois)</label><input id="budget" type="number" min="0" step="5000" placeholder="ex : 100000"></div>
+  </div>
+  <div class="count" id="count">Chargement des annonces…</div>
+  <div class="grid" id="grid"></div>
+
+  <div class="pub">
+    <h2>Publier une annonce</h2>
+    <div class="box">
+      <div><label for="pt">Titre</label><input id="pt" maxlength="100" placeholder="ex : Studio carrelé"></div>
+      <div><label for="pv">Ville</label><select id="pv"></select></div>
+      <div><label for="pq">Quartier</label><select id="pq"></select></div>
+      <div><label for="py">Type</label><select id="py"><option>Chambre</option><option>Studio</option><option>Appartement</option><option>Maison</option><option>Local commercial</option></select></div>
+      <div><label for="pp">Prix (FCFA/mois)</label><input id="pp" type="number" min="0"></div>
+      <div><label for="pw">WhatsApp du propriétaire</label><input id="pw" type="tel" placeholder="6XXXXXXXX"></div>
+      <div><label for="pc">Détails</label><input id="pc" maxlength="300" placeholder="2 ch, salon, parking"></div>
+      <div><label for="pf">Photo (2 Mo max)</label><input id="pf" type="file" accept="image/jpeg,image/png,image/webp"></div>
+      <button id="pb">Envoyer l'annonce</button>
+    </div>
+    <div id="pm" role="status"></div>
+  </div>
+</div>
+<footer>Les annonces sont vérifiées avant d'être affichées.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// ====== À REMPLIR : Supabase > Project Settings > API ======
+var SUPABASE_URL = "https://rtxliwywjuitipilifsl.supabase.co";      // ex : https://abcdxyz.supabase.co
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0eGxpd3l3anVpdGlwaWxpZnNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NzQ0NjMsImV4cCI6MjEwNzQ1MDQ2M30.8jrPvIa-OhZHrrtndop2R2jq_Ao75YRNrWEJmBdX3Z4"; // la clé "anon" / "publishable"
+// ===========================================================
+
+var QUARTIERS={
+"Douala":["Akwa","Bonanjo","Bonapriso","Bonamoussadi","Makepe","Logpom","Deido","Bali","Kotto","Ndogbong"],
+"Yaoundé":["Bastos","Mvan","Essos","Biyem-Assi","Nlongkak","Odza","Mendong","Ngoa-Ekelle"],
+"Bafoussam":["Tamdja","Djeleng","Tougang"],
+"Kribi":["Centre-ville","Mpolongwé"],
+"Limbé":["Down Beach","Mile 4"],
+"Garoua":["Roumdé Adjia","Plateau"],
+"Bamenda":["Commercial Avenue","Up Station","Nkwen"],
+"Maroua":["Domayo","Pont Vert"],
+"Bertoua":["Mokolo","Nkolbikon"],
+"Ebolowa":["Mekalat","Nko'ovos"],
+"Ngaoundéré":["Joli Soir","Burkina"]
+};
+var $=function(i){return document.getElementById(i)};
+var ANNONCES=[], db=null;
+var configure = SUPABASE_URL.indexOf("https://")===0 && SUPABASE_KEY.indexOf("COLLEZ")!==0;
+if(configure && window.supabase){ db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY); }
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ")}
+function options(list,first){var h=first?'<option value="">'+first+'</option>':"";list.forEach(function(x){h+="<option>"+esc(x)+"</option>"});return h}
+
+function fillQuartiers(vId,qId,first){
+  var v=$(vId).value;
+  $(qId).innerHTML=options(QUARTIERS[v]||[],first);
+  if(first) $(qId).disabled=!v;
+}
+function render(){
+  var v=$("ville").value,q=$("quartier").value,y=$("type").value,b=parseInt($("budget").value,10);
+  var r=ANNONCES.filter(function(a){return (!v||a.ville===v)&&(!q||a.quartier===q)&&(!y||a.type_bien===y)&&(!b||a.prix<=b)});
+  $("count").textContent=r.length+" annonce"+(r.length>1?"s":"")+" trouvée"+(r.length>1?"s":"");
+  if(!r.length){$("grid").innerHTML='<div class="empty">Aucun résultat. Essayez un autre quartier ou un budget plus élevé.</div>';return}
+  $("grid").innerHTML=r.map(function(a){
+    var msg=encodeURIComponent("Bonjour, je suis intéressé par : "+a.titre+" ("+a.quartier+", "+a.ville+")");
+    var img=(a.photo_url&&a.photo_url.indexOf(SUPABASE_URL)===0)?'<img loading="lazy" alt="'+esc(a.titre)+'" src="'+esc(a.photo_url)+'">':"";
+    var tel=String(a.whatsapp).replace(/\D/g,"");
+    return '<div class="card">'+img+'<div class="in"><span class="tag">'+esc(a.type_bien)+'</span><h3>'+esc(a.titre)+'</h3><div class="loc">'+esc(a.quartier)+', '+esc(a.ville)+'</div><div class="loc">'+esc(a.details)+'</div><div class="prix">'+fmt(a.prix)+' FCFA / mois</div><a href="https://wa.me/'+tel+'?text='+msg+'" target="_blank" rel="noopener">Contacter sur WhatsApp</a></div></div>';
+  }).join("");
+}
+async function charger(){
+  if(!configure){$("count").textContent="Site non configuré : ajoutez votre URL et votre clé Supabase dans le fichier.";return}
+  if(!db){$("count").textContent="Connexion impossible : vérifiez votre connexion internet puis rechargez la page.";return}
+  var res=await db.from("annonces").select("*").eq("statut","validee").order("created_at",{ascending:false});
+  if(res.error){$("count").textContent="Impossible de charger les annonces. Réessayez plus tard.";return}
+  ANNONCES=res.data||[];render();
+}
+async function envoyer(){
+  var m=$("pm"),btn=$("pb");
+  if(!db){m.textContent="Connexion impossible : vérifiez votre connexion internet puis rechargez la page.";return}
+  var t=$("pt").value.trim(),p=parseInt($("pp").value,10),w=$("pw").value.replace(/\D/g,"");
+  if(w.length===9)w="237"+w;
+  if(t.length<3||!p||!/^2376\d{8}$/.test(w)){m.textContent="Remplissez le titre, le prix et un numéro WhatsApp camerounais valide (6XXXXXXXX).";return}
+  var f=$("pf").files[0];
+  if(f&&f.size>2097152){m.textContent="La photo dépasse 2 Mo. Choisissez une image plus légère.";return}
+  btn.disabled=true;m.textContent="Envoi en cours…";
+  var url=null;
+  if(f){
+    var ext=({"image/jpeg":"jpg","image/png":"png","image/webp":"webp"})[f.type];
+    if(!ext){m.textContent="Format de photo non accepté (JPG, PNG ou WebP).";btn.disabled=false;return}
+    var name=crypto.randomUUID()+"."+ext;
+    var up=await db.storage.from("photos").upload(name,f,{contentType:f.type});
+    if(up.error){m.textContent="La photo n'a pas pu être envoyée. Réessayez.";btn.disabled=false;return}
+    url=db.storage.from("photos").getPublicUrl(name).data.publicUrl;
+  }
+  var ins=await db.from("annonces").insert({titre:t,ville:$("pv").value,quartier:$("pq").value,type_bien:$("py").value,prix:p,details:$("pc").value.trim()||null,whatsapp:w,photo_url:url});
+  btn.disabled=false;
+  if(ins.error){m.textContent="L'annonce n'a pas pu être envoyée. Vérifiez les champs et réessayez.";return}
+  m.textContent="Annonce envoyée. Elle sera visible après vérification.";
+  ["pt","pp","pw","pc","pf"].forEach(function(i){$(i).value=""});
+}
+
+$("ville").innerHTML=options(Object.keys(QUARTIERS),"Toutes les villes");
+$("pv").innerHTML=options(Object.keys(QUARTIERS));
+fillQuartiers("ville","quartier","Tous les quartiers");
+fillQuartiers("pv","pq");
+$("ville").addEventListener("change",function(){fillQuartiers("ville","quartier","Tous les quartiers");render()});
+$("pv").addEventListener("change",function(){fillQuartiers("pv","pq")});
+["quartier","type"].forEach(function(i){$(i).addEventListener("change",render)});
+$("budget").addEventListener("input",render);
+$("pb").addEventListener("click",envoyer);
+charger();
+</script>
+</body>
+</html>
